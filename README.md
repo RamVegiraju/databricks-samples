@@ -23,6 +23,7 @@ Covers experiment tracking, model registry, and operationalizing ML workloads us
 
 ### Hands-On
 - [Model Serving Hands-On (Scikit-learn Sample)](https://www.youtube.com/watch?v=V1S4PEzMW1s)
+- [Deloying Transformers Models on Databricks Model Serving](https://www.youtube.com/watch?v=mQUFMExtJXM)
 
 ---
 
