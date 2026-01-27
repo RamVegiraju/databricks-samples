@@ -33,6 +33,15 @@ Using Databricks Foundation Model APIs and Model Serving to work with LLMs and o
 
 - [Foundation Model API Intro](https://www.youtube.com/watch?v=LOBHuX0EfaA)
 
+
+### Retrieval Augmented Generation (RAG) Workflows
+Series walking through setting up Vector Search, LangChain with Databricks Foundation Model APIs, and MLflow for RAG evaluation.
+
+- [RAG on Databricks Part 1 Theoretical](https://www.youtube.com/watch?v=cAWxG8rAto0&list=PLThJtS7RDkOeQ9RqUPzNUG-qnW4LNe4h0&index=3)
+- [RAG on Databricks Part 2 Hands-On](https://www.youtube.com/watch?v=npBvZnpYdLw&list=PLThJtS7RDkOeQ9RqUPzNUG-qnW4LNe4h0&index=2)
+
+### Agents (Videos Coming)
+
 ---
 
 ## 📂 Repository Structure (WIP)
@@ -49,7 +58,7 @@ More samples will be added over time as new videos are released.
 ## 📺 YouTube Channel
 
 All samples are explained step-by-step on YouTube:  
-👉 *Ram Vegiraju*
+👉 [*Ram Vegiraju*](https://www.youtube.com/watch?v=5KRrw2qdtlg&list=PLThJtS7RDkOeQ9RqUPzNUG-qnW4LNe4h0&index=6)
 
 ---
 
