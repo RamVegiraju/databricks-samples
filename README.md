@@ -40,7 +40,9 @@ Series walking through setting up Vector Search, LangChain with Databricks Found
 - [RAG on Databricks Part 1 Theoretical](https://www.youtube.com/watch?v=cAWxG8rAto0&list=PLThJtS7RDkOeQ9RqUPzNUG-qnW4LNe4h0&index=3)
 - [RAG on Databricks Part 2 Hands-On](https://www.youtube.com/watch?v=npBvZnpYdLw&list=PLThJtS7RDkOeQ9RqUPzNUG-qnW4LNe4h0&index=2)
 
-### Agents (Videos Coming)
+### Agents
+
+- [Agentic Options on Databricks](https://www.youtube.com/watch?v=dgOB7Fksi5E)
 
 ---
 
