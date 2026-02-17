@@ -25,6 +25,11 @@ Covers experiment tracking, model registry, and operationalizing ML workloads us
 - [Model Serving Hands-On (Scikit-learn Sample)](https://www.youtube.com/watch?v=V1S4PEzMW1s)
 - [Deloying Transformers Models on Databricks Model Serving](https://www.youtube.com/watch?v=mQUFMExtJXM)
 
+### Newly Added Samples (Code)
+- [`mlflow/ResponsesAgentInterface/`](mlflow/ResponsesAgentInterface/) - LangGraph agent wrapped with MLflow `ResponsesAgent`, local serve flow, and request examples (tool and non-tool calls).
+- [`mlflow/AgentServing/`](mlflow/AgentServing/) - Minimal Agent Server sample scaffold.
+- [`mlflow/Intro/`](mlflow/Intro/) - Intro notebook samples.
+
 ---
 
 ## 🤖 Foundation Models & LLMs
