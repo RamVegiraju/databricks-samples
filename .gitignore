@@ -23,3 +23,5 @@ env/
 *.log
 
 
+mlflow/**/mlruns/
+mlflow/**/mlflow.db

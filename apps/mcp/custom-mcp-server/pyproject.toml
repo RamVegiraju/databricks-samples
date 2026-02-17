@@ -9,6 +9,7 @@ dependencies = [
   "pydantic>=2.6.0",
   "mcp==1.26.0",
   "databricks-mcp",
+  "fastmcp>=2.14.5",
 ]
 
 [project.scripts]
