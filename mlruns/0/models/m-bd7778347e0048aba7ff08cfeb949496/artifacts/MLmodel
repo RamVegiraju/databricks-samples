@@ -1,0 +1,15 @@
+artifact_path: /Users/ramvegiraju/Desktop/Projects/Databricks-Samples/mlruns/0/models/m-bd7778347e0048aba7ff08cfeb949496/artifacts
+flavors: {}
+is_signature_from_type_hint: false
+metadata:
+  mlflow.model.isExternal: true
+mlflow_version: 3.9.0
+model_id: m-bd7778347e0048aba7ff08cfeb949496
+model_uuid: m-bd7778347e0048aba7ff08cfeb949496
+prompts: null
+signature:
+  inputs: '[{"type": "boolean", "required": true}]'
+  outputs: '[{"type": "boolean", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-02-17 19:11:43.088563'

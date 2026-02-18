@@ -96,3 +96,8 @@ python3 requests_client.py --mode tool
   - Verify `DBX_EXPERIMENT_PATH` points to a valid `/Users/<user>/...` path.
 - **Tracing warning about missing experiment id**
   - Set `MLFLOW_EXPERIMENT_NAME` (or `MLFLOW_EXPERIMENT_ID`) in the serve terminal.
+
+## Credits/Additional Resources
+
+- MLflow Agent Server docs: https://mlflow.org/docs/latest/genai/serving/agent-server/
+- MLflow ResponsesAgent docs: https://mlflow.org/docs/latest/genai/serving/responses-agent/
