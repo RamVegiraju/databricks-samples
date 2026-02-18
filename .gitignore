@@ -25,3 +25,5 @@ env/
 
 mlflow/**/mlruns/
 mlflow/**/mlflow.db
+mlruns/
+mlflow.db
