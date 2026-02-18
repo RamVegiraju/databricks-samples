@@ -19,7 +19,7 @@ from langgraph.prebuilt.tool_node import ToolNode
 # Config
 # ----------------------------
 LLM_ENDPOINT_NAME = "databricks-gpt-oss-120b"  # change if needed
-CUSTOM_MCP_APP_URL = "https://custom-mcp-server-7474655512364318.aws.databricksapps.com/mcp"
+CUSTOM_MCP_APP_URL = "Enter MCP App URL here + /mcp"
 DBX_PROFILE = "oauth"  # your Databricks CLI profile
 
 SYSTEM_PROMPT = """

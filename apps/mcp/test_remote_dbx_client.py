@@ -2,12 +2,12 @@
 from databricks.sdk import WorkspaceClient
 from databricks_mcp import DatabricksMCPClient
 
-APP_MCP_URL = "Enter MCP App URL here + /mcp"
+CUSTOM_MCP_APP_URL = "Enter MCP App URL here + /mcp"
 
 def main():
     ws = WorkspaceClient(profile="oauth")
     client = DatabricksMCPClient(
-        server_url=APP_MCP_URL,
+        server_url=CUSTOM_MCP_APP_URL,
         workspace_client=ws,
     )
 

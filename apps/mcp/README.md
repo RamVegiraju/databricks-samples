@@ -24,6 +24,19 @@ uv run custom-server
 curl http://127.0.0.1:8000/healthz
 ```
 
+## Local MCP client tests
+
+With the local server running on port `8000`, test tools via the local MCP client script:
+
+```bash
+cd apps/mcp
+python3 test_local_mcp_client.py
+```
+
+This script calls:
+- `add` with `{"a": 2, "b": 3}`
+- `return_biodata` with `{"name": "Ram"}`
+
 ## First-time Databricks app deployment
 
 ```bash
@@ -50,7 +63,20 @@ After deployment completes, grab the application URL from the Databricks UI. The
 
 ## Updating after code changes
 
-For subsequent iterations, only resync the directory and redeploy:
+For subsequent iterations, do both steps in order:
+1) `databricks sync` to upload changed files
+2) `databricks apps deploy` to rebuild/restart the app with the updated source
+
+```bash
+cd apps/mcp/custom-mcp-server
+databricks sync . "/Users/$DATABRICKS_USERNAME/custom-mcp-server"
+databricks apps deploy custom-mcp-server \
+  --source-code-path "/Workspace/Users/$DATABRICKS_USERNAME/custom-mcp-server"
+```
+
+`sync` alone updates workspace files, but the running app may not pick up those changes reliably until `deploy` is run.
+
+Example:
 
 ```bash
 cd apps/mcp/custom-mcp-server
