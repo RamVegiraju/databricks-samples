@@ -49,6 +49,9 @@ Series walking through setting up Vector Search, LangChain with Databricks Found
 
 - [Agentic Options on Databricks](https://www.youtube.com/watch?v=dgOB7Fksi5E)
 
+**Production Agent Series** — A step-by-step series that builds a production-grade agent with managed memory, evals, and serving wired end-to-end. Uses **MLflow Agent Server** for serving, **Lakebase** for persistent memory (short- and long-term), and is designed to deploy as a **Databricks App**.  
+→ [`foundation-models/Agents/BYO/ProductionAgentSeries/`](foundation-models/Agents/BYO/ProductionAgentSeries/)
+
 ---
 
 ## 📂 Repository Structure (WIP)
