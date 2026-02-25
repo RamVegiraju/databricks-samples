@@ -32,7 +32,6 @@ export AGENT_LLM_TEMPERATURE="0.1"
 ## Start the server
 
 ```bash
-cd mlflow/AgentServing
 python3 start_server.py --reload --port 8000
 ```
 
@@ -55,7 +54,7 @@ curl -N --no-buffer -sS http://127.0.0.1:8000/invocations \
 ## Python client (both modes)
 
 ```bash
-python3 requests.py --base-url http://127.0.0.1:8000
+python3 invoke_requests.py --base-url http://127.0.0.1:8000
 ```
 
 ## Credits/Additional Resources
