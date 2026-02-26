@@ -35,7 +35,7 @@ python3 test_local_mcp_client.py
 
 This script calls:
 - `add` with `{"a": 2, "b": 3}`
-- `return_biodata` with `{"name": "Ram"}`
+- `return_biodata` with `{"name": "Alice"}`
 
 ## First-time Databricks app deployment
 

@@ -1,0 +1,2 @@
+[console_scripts]
+start-server = server.main:main

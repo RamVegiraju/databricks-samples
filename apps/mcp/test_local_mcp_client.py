@@ -7,7 +7,7 @@ def main():
 
     print("TOOLS:", client.list_tools())
     print("ADD (2 + 3):", client.call_tool("add", {"a": 2, "b": 3}))
-    print("BIODATA (Ram):", client.call_tool("return_biodata", {"name": "Ram"}))
+    print("BIODATA (Alice):", client.call_tool("return_biodata", {"name": "Alice"}))
 
 
 if __name__ == "__main__":

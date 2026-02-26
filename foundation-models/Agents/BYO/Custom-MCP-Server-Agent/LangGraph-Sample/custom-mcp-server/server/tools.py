@@ -13,8 +13,8 @@ def load_tools(mcp_server):
         interests: list[str] = Field(description="Interests")
 
     _db = {
-        "Ram": BioData(age=26, gender="Male", occupation="ML Architect", interests=["Databricks", "MCP", "Boxing"]),
-        "Sita": BioData(age=21, gender="Female", occupation="Teacher", interests=["Reading", "Traveling"]),
+        "Alice": BioData(age=30, gender="Female", occupation="Software Engineer", interests=["Python", "Databricks", "Hiking"]),
+        "Bob": BioData(age=28, gender="Male", occupation="Data Scientist", interests=["Machine Learning", "Statistics", "Chess"]),
     }
 
     @mcp_server.tool

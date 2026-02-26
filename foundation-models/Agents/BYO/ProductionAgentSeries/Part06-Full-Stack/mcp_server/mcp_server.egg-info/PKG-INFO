@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: mcp-server
+Version: 0.1.0
+Requires-Python: >=3.11
+Requires-Dist: fastapi>=0.110.0
+Requires-Dist: uvicorn>=0.29.0
+Requires-Dist: pydantic>=2.6.0
+Requires-Dist: fastmcp
+Requires-Dist: mcp==1.26.0
+Requires-Dist: databricks-mcp
+Requires-Dist: databricks-sdk>=0.40.0

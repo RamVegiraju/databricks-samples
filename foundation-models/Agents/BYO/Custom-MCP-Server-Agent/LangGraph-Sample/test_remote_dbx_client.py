@@ -13,7 +13,7 @@ def main():
 
     print("TOOLS:", client.list_tools())
     print("ADD:", client.call_tool("add", {"a": 2, "b": 3}))
-    print("BIO:", client.call_tool("return_biodata", {"name": "Ram"}))
+    print("BIO:", client.call_tool("return_biodata", {"name": "Alice"}))
 
 if __name__ == "__main__":
     main()

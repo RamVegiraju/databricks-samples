@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 def load_tools(mcp_server):
     @mcp_server.tool
     def add(a: int, b: int) -> int:
