@@ -12,8 +12,12 @@ from mlflow.genai.agent_server import AgentServer, setup_mlflow_git_based_versio
 agent_server = AgentServer("ResponsesAgent")
 app = agent_server.app
 
-# Maps traces to the git commit SHA they were generated from (optional but useful).
-setup_mlflow_git_based_version_tracking()
+# Maps traces to the git commit SHA they were generated from (optional).
+# Silently skipped if the deployed environment has no .git directory.
+try:
+    setup_mlflow_git_based_version_tracking()
+except Exception:
+    pass
 
 
 def main() -> None:

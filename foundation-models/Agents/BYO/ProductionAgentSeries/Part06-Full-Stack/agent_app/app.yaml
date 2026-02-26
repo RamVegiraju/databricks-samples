@@ -1,11 +1,11 @@
-command: ["python", "start_server.py"]
+command: ["uv", "run", "python", "start_server.py"]
 
 env:
   # ── Static values (safe to commit, not sensitive) ─────────────────────────
   - name: MLFLOW_TRACKING_URI
     value: "databricks"
   - name: AGENT_LLM_ENDPOINT
-    value: "databricks-claude-sonnet-4-6"
+    value: "databricks-gpt-oss-120b"
   - name: AGENT_LLM_TEMPERATURE
     value: "0.1"
   - name: DATABRICKS_EMBEDDING_ENDPOINT
@@ -16,16 +16,8 @@ env:
   # ── Fill in before deploying ───────────────────────────────────────────────
   # URL of the deployed mcp_server/ app — available after Step 5 of setup
   - name: MCP_SERVER_URL
-    value: "https://<your-mcp-app>.databricksapps.com/mcp"
+    value: "https://part06-mcp-server-7474655512364318.aws.databricksapps.com/mcp"
 
-  # MLflow experiment path for tracing and evaluation
-  - name: MLFLOW_EXPERIMENT_NAME
-    value: "/Users/<your-username>/Part06-Full-Stack"
-
-  # ── Resource-backed values (valueFrom references an app resource) ─────────
-  # LAKEBASE_INSTANCE_NAME is pulled from the Lakebase resource bound to this
-  # app. Add a Lakebase resource named "database" in the Databricks Apps UI
-  # (app settings → Resources → Add → Lakebase → select part06-agent-memory)
-  # and valueFrom: "database" will inject the instance name at runtime.
+  # ── Lakebase instance name (short name, not the connection hostname) ──────
   - name: LAKEBASE_INSTANCE_NAME
-    valueFrom: "database"
+    value: "part06-agent-memory"
