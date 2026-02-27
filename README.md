@@ -49,8 +49,93 @@ Series walking through setting up Vector Search, LangChain with Databricks Found
 
 - [Agentic Options on Databricks](https://www.youtube.com/watch?v=dgOB7Fksi5E)
 
-**Production Agent Series** — A step-by-step series that builds a production-grade agent with managed memory, evals, and serving wired end-to-end. Uses **MLflow Agent Server** for serving, **Lakebase** for persistent memory (short- and long-term), and is designed to deploy as a **Databricks App**.  
+**Production Agent Series** — A step-by-step series that builds a production-grade agent with managed memory, evals, and serving wired end-to-end. Uses **MLflow Agent Server** for serving, **Lakebase** for persistent memory (short- and long-term), and is designed to deploy as a **Databricks App**.
 → [`foundation-models/Agents/BYO/ProductionAgentSeries/`](foundation-models/Agents/BYO/ProductionAgentSeries/)
+
+| Part | Focus |
+|------|-------|
+| Part01 | Custom MCP server with FastMCP + Databricks Apps |
+| Part02 | ResponsesAgent interface — agnostic LangGraph wrapper |
+| Part03 | AgentServer — `@invoke` / `@stream` with SSE streaming |
+| Part04 | Lakebase long-term memory — custom PostgreSQL + pgvector |
+| Part05 | MLflow tracing, metadata, and GenAI evaluation |
+| Part06 | Full-stack deployment — all parts combined as a Databricks App |
+
+### Claude Code Integration
+
+This repo uses [Claude Code](https://claude.ai/claude-code) with skills sourced from two official Databricks repositories:
+
+- [**databricks/app-templates**](https://github.com/databricks/app-templates) — agent development, memory, tooling, and deployment patterns
+- [**databricks-solutions/ai-dev-kit**](https://github.com/databricks-solutions/ai-dev-kit) — broader Databricks platform skills covering MLflow, Spark, SQL, Unity Catalog, and more
+
+Skills are stored in `.claude/skills/` and are automatically available in Claude Code sessions. Below is the full list:
+
+**Agent Development**
+
+| Skill | Purpose |
+|-------|---------|
+| `quickstart` | First-time setup and Databricks authentication |
+| `run-locally` | Run and test agents locally |
+| `modify-langgraph-agent` | Modify LangGraph agent code, tools, and configuration |
+| `modify-openai-agent` | Modify OpenAI SDK agent code, tools, and configuration |
+| `add-tools-langgraph` | Add MCP servers, UC functions, Genie, and vector search (LangGraph) |
+| `add-tools-openai` | Add MCP servers, UC functions, Genie, and vector search (OpenAI SDK) |
+| `discover-tools` | Discover available tools and resources in the workspace |
+| `deploy` | Deploy apps via Databricks Asset Bundles |
+| `migrate-from-model-serving` | Migrate ResponsesAgent from Model Serving to Databricks Apps |
+
+**Memory**
+
+| Skill | Purpose |
+|-------|---------|
+| `lakebase-setup` | Configure Lakebase for agent memory storage |
+| `agent-langgraph-memory` | Add long-term + short-term memory to LangGraph agents |
+| `agent-openai-memory` | Add long-term + short-term memory to OpenAI SDK agents |
+
+**MLflow**
+
+| Skill | Purpose |
+|-------|---------|
+| `databricks-mlflow-evaluation` | MLflow 3 GenAI eval, scorers, and datasets |
+| `instrumenting-with-mlflow-tracing` | Add MLflow tracing to agents and LLM apps |
+| `retrieving-mlflow-traces` | Get, filter, and search MLflow traces |
+| `analyze-mlflow-trace` | Debug a single MLflow trace |
+| `analyze-mlflow-chat-session` | Debug multi-turn chat sessions |
+| `querying-mlflow-metrics` | Query token usage, latency, and quality metrics |
+| `searching-mlflow-docs` | Fetch MLflow documentation |
+| `mlflow-onboarding` | Get started with MLflow |
+| `agent-evaluation` | Evaluate and optimize agent output quality |
+
+**Databricks Platform**
+
+| Skill | Purpose |
+|-------|---------|
+| `databricks-config` | Configure Databricks profile and auth |
+| `databricks-docs` | General Databricks documentation reference |
+| `databricks-python-sdk` | Python SDK, Databricks Connect, CLI, REST API |
+| `databricks-asset-bundles` | DAB project creation and multi-environment deployments |
+| `databricks-model-serving` | Deploy and query Model Serving endpoints |
+| `databricks-jobs` | Create, run, and schedule Databricks Jobs |
+| `databricks-unity-catalog` | System tables, volumes, and data lineage |
+| `databricks-vector-search` | Vector search endpoints/indexes for RAG |
+| `databricks-genie` | Genie Spaces and natural language SQL |
+| `databricks-dbsql` | Databricks SQL, warehouses, and advanced SQL features |
+| `databricks-iceberg` | Managed/external Iceberg tables, IRC, Snowflake interop |
+| `databricks-agent-bricks` | Knowledge Assistants and Supervisor Agents |
+| `databricks-app-python` | Python web apps (Streamlit, Dash, FastAPI, etc.) |
+| `databricks-app-apx` | Full-stack apps with APX (FastAPI + React) |
+| `databricks-aibi-dashboards` | AI/BI dashboard creation |
+| `databricks-lakebase-provisioned` | Lakebase Provisioned (managed PostgreSQL) |
+| `databricks-lakebase-autoscale` | Lakebase Autoscaling with scale-to-zero and branching |
+| `databricks-metric-views` | Unity Catalog metric views and KPI definitions |
+| `databricks-spark-declarative-pipelines` | DLT/SDP pipelines, streaming tables, and materialized views |
+| `databricks-spark-structured-streaming` | Spark Structured Streaming production patterns |
+| `spark-python-data-source` | Custom Spark data source connectors |
+| `databricks-zerobus-ingest` | Near real-time gRPC ingestion into Delta tables |
+| `databricks-synthetic-data-generation` | Generate synthetic data with Faker and Spark |
+| `databricks-unstructured-pdf-generation` | Generate synthetic PDFs for RAG evaluation |
+
+Skills provide up-to-date SDK patterns and best practices directly in the development context, reducing errors and keeping implementations aligned with official Databricks tooling.
 
 ---
 
@@ -69,6 +154,16 @@ More samples will be added over time as new videos are released.
 
 All samples are explained step-by-step on YouTube:  
 👉 [*Ram Vegiraju*](https://www.youtube.com/watch?v=5KRrw2qdtlg&list=PLThJtS7RDkOeQ9RqUPzNUG-qnW4LNe4h0&index=6)
+
+---
+
+## Credits & Additional References
+
+This repo builds on and borrows from the following official Databricks resources:
+
+- [**databricks/app-templates**](https://github.com/databricks/app-templates) — official agent and app templates that provided the foundation for skills, patterns, and deployment workflows used throughout this repo
+- [**Databricks Lakebase Documentation**](https://docs.databricks.com/aws/en/oltp/) — reference for managed PostgreSQL (Lakebase Provisioned and Autoscale) used for agent memory
+- [**Databricks AI/ML Documentation**](https://docs.databricks.com/aws/en/machine-learning/) — reference for Foundation Models, MLflow, Model Serving, and the broader AI/ML platform
 
 ---
 
