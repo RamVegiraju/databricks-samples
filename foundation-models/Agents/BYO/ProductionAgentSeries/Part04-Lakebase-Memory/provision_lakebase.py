@@ -17,6 +17,7 @@ import uuid
 import psycopg2
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.database import DatabaseInstance
+from databricks.sdk.errors import InvalidParameterValue
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -78,15 +79,23 @@ def parse_args() -> argparse.Namespace:
 def create_instance(w: WorkspaceClient, name: str, capacity: str, retention: int) -> DatabaseInstance:
     print(f"[1/3] Creating Lakebase instance '{name}' ({capacity}) …")
 
-    instance = w.database.create_database_instance_and_wait(
-        DatabaseInstance(
-            name=name,
-            capacity=capacity,
-            retention_window_in_days=retention,
+    try:
+        instance = w.database.create_database_instance_and_wait(
+            DatabaseInstance(
+                name=name,
+                capacity=capacity,
+                retention_window_in_days=retention,
+            )
         )
-    )
+        print(f"      ✓ Instance ready")
+    except InvalidParameterValue as e:
+        if "not unique" in str(e):
+            print(f"      Instance '{name}' already exists — fetching existing instance …")
+            instance = w.database.get_database_instance(name=name)
+            print(f"      ✓ Using existing instance")
+        else:
+            raise
 
-    print(f"      ✓ Instance ready")
     print(f"        Read/Write DNS : {instance.read_write_dns}")
     print(f"        Read-only  DNS : {getattr(instance, 'read_only_dns', 'n/a')}")
     return instance
