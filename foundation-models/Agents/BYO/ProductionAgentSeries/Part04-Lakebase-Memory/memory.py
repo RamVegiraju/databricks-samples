@@ -2,54 +2,30 @@
 memory.py - AI operations for the memory system.
 
 Two responsibilities only:
-  - embed(texts)        embed a list of texts via bge-embed-ram
+  - embed(texts)        embed a list of texts via bge-large-en (AI Gateway)
   - summarize(messages) ask Claude to summarize a session
 
 No database logic here. All reads/writes go through db.py.
 """
 
 import os
-import json
-import urllib.request
-import urllib.error
-from typing import Optional
 from openai import OpenAI
 
 
 def embed(texts: list[str]) -> list[list[float]]:
     """
-    Embed a list of texts via the Databricks bge-embed-ram serving endpoint.
+    Embed a list of texts via the Databricks bge-large-en endpoint on AI Gateway.
     Returns a list of 1024-dim float vectors.
-    Handles both OpenAI-style {"data":[{"embedding":[...]}]}
-    and Databricks-style {"embeddings":[[...]]} response shapes.
     """
-    host     = os.environ["DATABRICKS_HOST"].rstrip("/")
-    endpoint = os.environ["DATABRICKS_EMBEDDING_ENDPOINT"]
-    token    = os.environ["DATABRICKS_TOKEN"]
-    url      = f"{host}/serving-endpoints/{endpoint}/invocations"
-
-    body = json.dumps({"input": texts}).encode("utf-8")
-    req  = urllib.request.Request(
-        url,
-        data=body,
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type":  "application/json",
-        },
-        method="POST",
+    client = OpenAI(
+        api_key=os.environ["DATABRICKS_TOKEN"],
+        base_url=os.environ["DATABRICKS_BASE_URL"],
     )
-    try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            out = json.loads(resp.read().decode())
-    except urllib.error.HTTPError as e:
-        err_body = e.read().decode() if e.fp else str(e)
-        raise RuntimeError(f"Embedding API error {e.code}: {err_body}") from e
-
-    if "data" in out and isinstance(out["data"], list):
-        return [item["embedding"] for item in out["data"]]
-    if "embeddings" in out:
-        return out["embeddings"]
-    raise ValueError(f"Unexpected embedding response shape: {list(out.keys())}")
+    response = client.embeddings.create(
+        input=texts,
+        model=os.environ["DATABRICKS_EMBEDDING_ENDPOINT"],
+    )
+    return [item.embedding for item in response.data]
 
 
 def summarize(messages: list[dict], client: OpenAI) -> str:
@@ -62,7 +38,7 @@ def summarize(messages: list[dict], client: OpenAI) -> str:
         f"{m['role'].upper()}: {m['content']}" for m in messages
     )
     response = client.chat.completions.create(
-        model="databricks-claude-opus-4-6",
+        model="databricks-gpt-oss-120b",
         messages=[
             {
                 "role": "system",
@@ -76,4 +52,7 @@ def summarize(messages: list[dict], client: OpenAI) -> str:
         ],
         max_tokens=300,
     )
-    return response.choices[0].message.content
+    raw = response.choices[0].message.content
+    if isinstance(raw, list):
+        return "\n".join(block["text"] for block in raw if block.get("type") == "text")
+    return raw

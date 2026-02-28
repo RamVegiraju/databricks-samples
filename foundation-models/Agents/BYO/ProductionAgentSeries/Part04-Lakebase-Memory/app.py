@@ -68,11 +68,15 @@ def call_claude(history: list[dict], long_term: list[str]) -> tuple[str, int, in
     messages.extend(history)
 
     response = client.chat.completions.create(
-        model="databricks-claude-opus-4-6",
+        model="databricks-gpt-oss-120b",
         messages=messages,
         max_tokens=1024,
     )
-    msg   = response.choices[0].message.content
+    raw = response.choices[0].message.content
+    if isinstance(raw, list):
+        msg = "\n".join(block["text"] for block in raw if block.get("type") == "text")
+    else:
+        msg = raw
     usage = response.usage
     return msg, usage.prompt_tokens, usage.completion_tokens
 

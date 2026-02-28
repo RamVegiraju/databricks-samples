@@ -1,8 +1,8 @@
-# Lakebase Managed Memory
+# Part 04 — Lakebase Managed Memory
 
-A terminal chatbot backed by Claude (via Databricks Foundation Model APIs) with
-two-tier persistent memory stored entirely in a Databricks Lakebase instance.
-No external vector database. No LangGraph. Raw SQL and pgvector.
+A Streamlit chatbot backed by `databricks-gpt-oss-120b` with two-tier persistent
+memory stored entirely in a Databricks Lakebase instance. No external vector
+database. No LangGraph. Raw SQL and pgvector.
 
 ---
 
@@ -15,24 +15,24 @@ User logs in
   +-- Long-term:  embed first message, retrieve top-5 relevant past summaries (pgvector)
   |
   +--> Build context: [system prompt] + [long-term memories] + [short-term history]
-  +--> Call Claude (Databricks FM API)
+  +--> Call databricks-gpt-oss-120b (Databricks AI Gateway)
   +--> Persist reply to messages table
   |
 User logs out
-  +-- Summarize session with Claude
-  +-- Embed summary with bge-embed-ram
+  +-- Summarize session with databricks-gpt-oss-120b
+  +-- Embed summary with bge-large-en (AI Gateway)
   +-- Store in long_term_memory table (feeds future sessions)
 ```
 
 ### Short-term memory
 
 Every message turn is written to and read from the `messages` table on each
-request. This gives Claude the full context of the current session. Scoped to
+request. This gives the model full context of the current session. Scoped to
 `session_id` — a new session starts clean.
 
 ### Long-term memory
 
-On session end, Claude summarizes the conversation. That summary is embedded
+On session end, the model summarizes the conversation. That summary is embedded
 using `databricks-bge-large-en` (1024 dims) and stored in `long_term_memory`.
 
 On the next login, the user's first message is embedded and a pgvector cosine
@@ -45,10 +45,10 @@ New session start
 
 Each turn
   user message  -> messages table (write)
-  full history  -> messages table (read)  -> sent to Claude
+  full history  -> messages table (read)  -> sent to model
 
 Session end
-  all messages  -> Claude summarize -> embed -> long_term_memory (write)
+  all messages  -> summarize -> embed -> long_term_memory (write)
 ```
 
 ---
@@ -81,7 +81,7 @@ databricks_postgres  (default Lakebase database)
   +-- long_term_memory    long-term memory
         user_id           FK -> users   (PK composite)
         session_id        FK -> sessions (PK composite)
-        summary           TEXT  (Claude-generated, 3-5 sentences)
+        summary           TEXT  (model-generated, 3-5 sentences)
         embedding         vector(1024)  (bge-large-en, indexed via HNSW)
         created_at
 ```
@@ -105,9 +105,12 @@ compared.
 | Lakebase instance | Databricks managed PostgreSQL server (CU_1) |
 | Database | `databricks_postgres` (default, no extra DB needed) |
 | pgvector | PostgreSQL extension for vector storage + similarity search |
-| Claude | `databricks-claude-opus-4-6` via Databricks FM API (AI Gateway) |
-| Embeddings | `databricks-bge-large-en` via Databricks Model Serving endpoint |
+| Chat model | `databricks-gpt-oss-120b` via [Databricks AI Gateway](https://docs.databricks.com/aws/en/ai-gateway/) |
+| Embeddings | `databricks-bge-large-en` via [Databricks AI Gateway](https://docs.databricks.com/aws/en/ai-gateway/) |
 | Auth | Databricks OAuth short-lived tokens (regenerated at connect time) |
+
+Both the chat model and embeddings use the same `DATABRICKS_BASE_URL` AI Gateway
+endpoint — the OpenAI client routes by model name.
 
 ---
 
@@ -117,8 +120,9 @@ compared.
 schema.sql            DDL for all four tables + indexes
 db.py                 All database operations (psycopg2, raw SQL)
 memory.py             AI operations: embed() and summarize() — no DB logic
-test_chat.py          Terminal chat loop wiring db.py + memory.py + Claude
+app.py                Streamlit chatbot UI
 provision_lakebase.py One-time script to create the Lakebase instance via SDK
+apply_schema.py       One-time script to apply schema.sql to the database
 workspace_connection.py  Validate Databricks SDK connectivity
 requirements.txt
 .env                  Credentials (not committed)
@@ -128,26 +132,68 @@ requirements.txt
 
 ## Setup
 
+### 1. Install dependencies
+
 ```bash
-# 1. Install dependencies
 pip install -r requirements.txt
-
-# 2. Configure credentials
-cp .env.example .env
-# Fill in DATABRICKS_HOST, DATABRICKS_TOKEN,
-# DATABRICKS_BASE_URL, DATABRICKS_EMBEDDING_ENDPOINT,
-# LAKEBASE_HOST, LAKEBASE_DATABASE, LAKEBASE_USER, LAKEBASE_INSTANCE_NAME
-
-# 3. Provision Lakebase instance (first time only)
-python3 provision_lakebase.py
-
-# 4. Apply schema
-# Connect to databricks_postgres and run schema.sql
-# (provision_lakebase.py does this automatically)
-
-# 5. Run
-python3 test_chat.py
 ```
+
+### 2. Configure credentials
+
+Create a `.env` file in this directory:
+
+```bash
+# Databricks workspace
+DATABRICKS_HOST=https://<your-workspace>.cloud.databricks.com
+DATABRICKS_TOKEN=<your-pat-token>
+
+# AI Gateway base URL — find this in your workspace under Serving > AI Gateway
+# Format: https://<workspace-id>.ai-gateway.cloud.databricks.com/mlflow/v1
+DATABRICKS_BASE_URL=https://<workspace-id>.ai-gateway.cloud.databricks.com/mlflow/v1
+
+# Embeddings endpoint name
+DATABRICKS_EMBEDDING_ENDPOINT=databricks-bge-large-en
+
+# Lakebase (PostgreSQL) — fill in after provisioning
+LAKEBASE_INSTANCE_NAME=<your-instance-name>
+LAKEBASE_HOST=<instance-id>.database.cloud.databricks.com
+LAKEBASE_DATABASE=databricks_postgres
+LAKEBASE_USER=<your-databricks-email>
+```
+
+> **Finding `DATABRICKS_BASE_URL`:** In your workspace go to **Serving → AI Gateway**,
+> or use the URL format shown in the model serving playground when you select a
+> foundation model endpoint.
+
+### 3. Provision the Lakebase instance (first time only)
+
+If you don't have a Lakebase instance yet:
+
+```bash
+python3 provision_lakebase.py
+```
+
+This creates a `chatbot-memory` instance and prints the `LAKEBASE_HOST` value
+to add to your `.env`. If you already have an instance, skip this step and fill
+in the `.env` values from the Databricks UI (**Compute → Lakebase**).
+
+### 4. Apply the schema (first time only)
+
+```bash
+python3 apply_schema.py
+```
+
+This enables the `pgvector` extension and creates the four tables
+(`users`, `sessions`, `messages`, `long_term_memory`) plus indexes.
+
+### 5. Run
+
+```bash
+streamlit run app.py
+```
+
+Open http://localhost:8501, enter a username, and start chatting. Long-term
+memory is written when you click **Logout** at the end of a session.
 
 ---
 
@@ -167,3 +213,7 @@ python3 test_chat.py
 - **Tokens are short-lived.** Lakebase OAuth tokens expire in ~60 minutes.
   `db.py` regenerates and reconnects automatically when the token is within
   5 minutes of expiry.
+
+- **Reasoning model content blocks.** `databricks-gpt-oss-120b` returns
+  structured content (reasoning + text blocks). The app extracts only the `text`
+  blocks before display and storage.
