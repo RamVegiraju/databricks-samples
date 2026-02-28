@@ -51,10 +51,10 @@ def init_state():
             st.session_state[key] = val
 
 # ---------------------------------------------------------------------------
-# Claude call
+# LLM call
 # ---------------------------------------------------------------------------
 
-def call_claude(history: list[dict], long_term: list[str]) -> tuple[str, int, int]:
+def call_llm(history: list[dict], long_term: list[str]) -> tuple[str, int, int]:
     client   = get_client()
     messages = [{"role": "system", "content": "You are a helpful, concise assistant."}]
 
@@ -203,11 +203,11 @@ def render_chat():
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Call Claude
+    # Call LLM
     with st.chat_message("assistant"):
         with st.spinner(""):
             history = db.get_session_history(st.session_state.session_id)
-            reply, prompt_tokens, completion_tokens = call_claude(
+            reply, prompt_tokens, completion_tokens = call_llm(
                 history, st.session_state.long_term_context
             )
         st.markdown(reply)

@@ -3,7 +3,7 @@ memory.py - AI operations for the memory system.
 
 Two responsibilities only:
   - embed(texts)        embed a list of texts via bge-large-en (AI Gateway)
-  - summarize(messages) ask Claude to summarize a session
+  - summarize(messages) ask the LLM to summarize a session
 
 No database logic here. All reads/writes go through db.py.
 """
@@ -30,7 +30,7 @@ def embed(texts: list[str]) -> list[list[float]]:
 
 def summarize(messages: list[dict], client: OpenAI) -> str:
     """
-    Ask Claude to produce a concise summary of a completed session.
+    Ask the LLM to produce a concise summary of a completed session.
     messages: list of {"role": ..., "content": ...} dicts.
     Returns the summary as a plain string.
     """
