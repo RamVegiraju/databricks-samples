@@ -16,7 +16,7 @@ load_dotenv()
 # ---------------------------------------------------------------------------
 # Page config
 # ---------------------------------------------------------------------------
-st.set_page_config(page_title="Claude Chatbot", layout="wide")
+st.set_page_config(page_title="AI Chatbot", layout="wide")
 
 # ---------------------------------------------------------------------------
 # Cached singletons — created once, reused across reruns
@@ -85,7 +85,7 @@ def call_claude(history: list[dict], long_term: list[str]) -> tuple[str, int, in
 # ---------------------------------------------------------------------------
 
 def render_login():
-    st.title("Claude Chatbot")
+    st.title("AI Chatbot")
     st.caption("Powered by Databricks Foundation Model APIs + Lakebase memory")
     st.divider()
 
@@ -177,7 +177,7 @@ def render_chat():
 
     db = get_db()
 
-    st.title("Claude")
+    st.title("AI Chatbot")
 
     # Render message history
     for msg in st.session_state.messages:
@@ -185,7 +185,7 @@ def render_chat():
             st.markdown(msg["content"])
 
     # Chat input
-    user_input = st.chat_input("Message Claude...")
+    user_input = st.chat_input("Message AI...")
     if not user_input:
         return
 
