@@ -10,6 +10,7 @@ This repository contains **hands-on code samples** and **conceptual guides** tha
 High-level explanations for folks new to Databricks, Cloud, and the modern data + ML stack.
 
 - [What is Databricks](https://www.youtube.com/watch?v=5KRrw2qdtlg&t=354s)
+- [What is Unity Catalog](https://www.youtube.com/watch?v=EBRxWCAvL7U)
 
 ---
 
