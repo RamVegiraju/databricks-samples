@@ -9,7 +9,7 @@ Usage:
 from databricks.sdk import WorkspaceClient
 from databricks_mcp import DatabricksMCPClient
 
-APP_MCP_URL = "https://part06-mcp-server-7474655512364318.aws.databricksapps.com/mcp"
+APP_MCP_URL = "https://part06-mcp-server-2556758628403379.aws.databricksapps.com/mcp"
 
 
 def main():

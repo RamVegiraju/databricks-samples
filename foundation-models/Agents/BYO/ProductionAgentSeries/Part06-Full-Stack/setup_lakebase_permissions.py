@@ -1,27 +1,26 @@
 """
-setup_lakebase_permissions.py — Initialize Lakebase tables and grant the agent
-app's service principal the permissions it needs.
+setup_lakebase_permissions.py — Grant the agent app's service principal the
+permissions it needs on Lakebase.
 
-Two-step process (following Databricks app-templates best practice):
+Uses raw psycopg2 with SDK-generated OAuth tokens (Part04 pattern) — no
+dependency on databricks-langchain.
 
-  Step A — Initialize tables as admin:
-    Runs store.setup() and checkpointer.setup() locally with admin credentials.
-    This pre-creates all required tables (store, store_vectors, store_migrations,
-    vector_migrations, checkpoints, checkpoint_writes, checkpoint_migrations) so
-    the deployed SP only needs DML — not CREATE.
-    Tables: store, store_vectors, store_migrations, vector_migrations,
-            checkpoints, checkpoint_blobs, checkpoint_writes, checkpoint_migrations
+Steps:
+  1. Resolve the app's service principal client ID (UUID)
+  2. Connect to Lakebase as admin via psycopg2 + short-lived SDK token
+  3. Create the SP's Postgres role (idempotent)
+  4. Enable pgvector extension
+  5. Grant USAGE + CREATE on schema public
+  6. Grant ALL on any existing tables in schema public
+  7. ALTER DEFAULT PRIVILEGES so SP automatically gets access to future tables
 
-  Step B — Grant permissions to SP via LakebaseClient:
-    Uses databricks_ai_bridge.lakebase.LakebaseClient to:
-      1. create_role() — register the SP's Postgres role
-      2. grant_schema() — USAGE on public schema
-      3. grant_table()  — SELECT/INSERT/UPDATE/DELETE on each table
-
-Run this ONCE after app creation (Step 6b) and before testing the deployed app.
+Tables are created on first request by AsyncDatabricksStore.setup() and
+AsyncCheckpointSaver.setup() — both are called per-request in server.py.
+Since the SP has CREATE on the schema, it can create its own tables and will
+own them automatically.
 
 Requirements:
-    pip install "databricks-langchain[memory]" databricks-sdk python-dotenv
+    pip install psycopg2-binary databricks-sdk python-dotenv
 
 Usage:
     python setup_lakebase_permissions.py
@@ -30,40 +29,19 @@ Usage:
 
 import argparse
 import os
+import uuid
 
+import psycopg2
 from databricks.sdk import WorkspaceClient
-from databricks_ai_bridge.lakebase import LakebaseClient, SchemaPrivilege, TablePrivilege
-import asyncio
-
-from databricks_langchain import AsyncCheckpointSaver, DatabricksStore
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "agent_app/.env"))
 
-# Tables created by DatabricksStore.setup() and CheckpointSaver.setup()
-STORE_TABLES = [
-    "public.store",
-    "public.store_vectors",
-    "public.store_migrations",
-    "public.vector_migrations",
-]
-CHECKPOINT_TABLES = [
-    "public.checkpoints",
-    "public.checkpoint_blobs",
-    "public.checkpoint_writes",
-    "public.checkpoint_migrations",
-]
-ALL_TABLES = STORE_TABLES + CHECKPOINT_TABLES
-
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Initialize Lakebase tables and grant SP permissions")
-    p.add_argument("--app-name",  default="part06-agent-app",    help="Databricks App name")
-    p.add_argument("--instance",  default="part06-agent-memory",  help="Lakebase instance name")
-    p.add_argument(
-        "--skip-init", action="store_true",
-        help="Skip table initialization (if tables already exist)"
-    )
+    p = argparse.ArgumentParser(description="Grant SP permissions on Lakebase")
+    p.add_argument("--app-name", default="part06-agent-app",   help="Databricks App name")
+    p.add_argument("--instance", default="part06-agent-memory", help="Lakebase instance name")
     return p.parse_args()
 
 
@@ -71,95 +49,103 @@ def get_sp_client_id(w: WorkspaceClient, app_name: str) -> str:
     """Return the SP's client ID (UUID) — the Postgres role name used by Lakebase."""
     app = w.apps.get(app_name)
 
-    # Prefer service_principal_client_id (direct field) if available
     sp_client_id = getattr(app, "service_principal_client_id", None)
     if not sp_client_id:
-        # Fall back: look up application_id via service_principals API
         sp = w.service_principals.get(app.service_principal_id)
         sp_client_id = str(sp.application_id)
 
     print(f"  SP display name : {getattr(app, 'service_principal_name', 'n/a')}")
-    print(f"  SP client ID    : {sp_client_id}  ← Postgres role name")
+    print(f"  SP client ID    : {sp_client_id}  <- Postgres role name")
     return sp_client_id
 
 
-def init_tables(instance_name: str, embedding_endpoint: str, embedding_dims: int) -> None:
-    """Run store.setup() and checkpointer.setup() as admin to pre-create all tables."""
-    print("  Initializing DatabricksStore tables ...")
-    store = DatabricksStore(
-        instance_name=instance_name,
-        embedding_endpoint=embedding_endpoint,
-        embedding_dims=embedding_dims,
+def _get_lakebase_conn(w: WorkspaceClient, instance_name: str) -> psycopg2.extensions.connection:
+    """Open a psycopg2 connection to Lakebase using a short-lived SDK token (Part04 pattern)."""
+    instance = w.database.get_database_instance(name=instance_name)
+    host = instance.read_write_dns
+    cred = w.database.generate_database_credential(
+        request_id=str(uuid.uuid4()),
+        instance_names=[instance_name],
     )
-    store.setup()
-    print("  DatabricksStore tables ready.")
-
-    print("  Initializing AsyncCheckpointSaver tables ...")
-    asyncio.run(_init_checkpointer(instance_name))
-    print("  AsyncCheckpointSaver tables ready.")
-
-
-async def _init_checkpointer(instance_name: str) -> None:
-    # AsyncCheckpointSaver requires a running event loop at instantiation time
-    # and must be used as an async context manager to open its connection pool.
-    async with AsyncCheckpointSaver(instance_name=instance_name) as checkpointer:
-        await checkpointer.setup()
-
-
-def grant_sp_permissions(instance_name: str, sp_client_id: str) -> None:
-    """Use LakebaseClient to create the SP role and grant schema + table permissions."""
-    client = LakebaseClient(instance_name=instance_name)
-
-    print(f"  Creating Postgres role for SP '{sp_client_id}' ...")
-    client.create_role(sp_client_id, "SERVICE_PRINCIPAL")
-
-    print("  Granting USAGE on schema public ...")
-    client.grant_schema(
-        grantee=sp_client_id,
-        schemas=["public"],
-        privileges=[SchemaPrivilege.USAGE, SchemaPrivilege.CREATE],
+    conn = psycopg2.connect(
+        host=host,
+        port=5432,
+        dbname="databricks_postgres",
+        user=w.current_user.me().user_name,
+        password=cred.token,
+        sslmode="require",
+        connect_timeout=10,
     )
+    conn.autocommit = True
+    return conn
 
-    print(f"  Granting DML on {len(ALL_TABLES)} tables ...")
-    client.grant_table(
-        grantee=sp_client_id,
-        tables=ALL_TABLES,
-        privileges=[
-            TablePrivilege.SELECT,
-            TablePrivilege.INSERT,
-            TablePrivilege.UPDATE,
-            TablePrivilege.DELETE,
-        ],
-    )
+
+def grant_sp_permissions(w: WorkspaceClient, instance_name: str, sp_client_id: str) -> None:
+    """Create the SP Postgres role and grant schema + table permissions."""
+    conn = _get_lakebase_conn(w, instance_name)
+    try:
+        with conn.cursor() as cur:
+            # Create role for the SP (ignore if already exists)
+            print(f"  Creating Postgres role for SP '{sp_client_id}' ...")
+            cur.execute(
+                f"""DO $$ BEGIN
+                    CREATE ROLE "{sp_client_id}" WITH LOGIN;
+                EXCEPTION WHEN duplicate_object THEN NULL;
+                END $$;"""
+            )
+
+            # Enable pgvector extension (needed by store_vectors table)
+            print("  Enabling pgvector extension ...")
+            cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+
+            # Grant USAGE + CREATE on schema public so SP can create its own tables
+            print("  Granting USAGE, CREATE on schema public ...")
+            cur.execute(f'GRANT USAGE, CREATE ON SCHEMA public TO "{sp_client_id}";')
+
+            # Grant on any tables that already exist
+            cur.execute("""
+                SELECT tablename FROM pg_tables WHERE schemaname = 'public'
+            """)
+            existing = [r[0] for r in cur.fetchall()]
+            if existing:
+                print(f"  Granting ALL on {len(existing)} existing tables ...")
+                cur.execute(
+                    f'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "{sp_client_id}";'
+                )
+
+            # ALTER DEFAULT PRIVILEGES so SP gets access to any future tables created by admin
+            print("  Setting default privileges for future tables ...")
+            cur.execute(
+                f'ALTER DEFAULT PRIVILEGES IN SCHEMA public '
+                f'GRANT ALL ON TABLES TO "{sp_client_id}";'
+            )
+            cur.execute(
+                f'ALTER DEFAULT PRIVILEGES IN SCHEMA public '
+                f'GRANT ALL ON SEQUENCES TO "{sp_client_id}";'
+            )
+
+    finally:
+        conn.close()
+
     print("  Permissions granted.")
 
 
 def main() -> None:
     args = parse_args()
 
-    instance = args.instance
-    embedding_endpoint = os.getenv("DATABRICKS_EMBEDDING_ENDPOINT", "databricks-bge-large-en")
-    embedding_dims = int(os.getenv("EMBEDDING_DIMS", "1024"))
-
     w = WorkspaceClient(
         host=os.environ["DATABRICKS_HOST"],
         token=os.environ["DATABRICKS_TOKEN"],
     )
 
-    print(f"\n[1/3] Resolving SP for app '{args.app_name}' ...")
+    print(f"\n[1/2] Resolving SP for app '{args.app_name}' ...")
     sp_client_id = get_sp_client_id(w, args.app_name)
 
-    if not args.skip_init:
-        print(f"\n[2/3] Initializing Lakebase tables on '{instance}' as admin ...")
-        init_tables(instance, embedding_endpoint, embedding_dims)
-    else:
-        print("\n[2/3] Skipping table initialization (--skip-init).")
+    print(f"\n[2/2] Granting permissions to SP on '{args.instance}' ...")
+    grant_sp_permissions(w, args.instance, sp_client_id)
 
-    print(f"\n[3/3] Granting permissions to SP on '{instance}' ...")
-    grant_sp_permissions(instance, sp_client_id)
-
-    print("\nDone. The agent app can now read/write memory tables.")
-    print("Retry the test — no redeploy needed.")
+    print("\nDone. The agent app's SP can now connect and create memory tables.")
+    print("Tables will be created on first request via store.setup() / checkpointer.setup().")
 
 
 if __name__ == "__main__":

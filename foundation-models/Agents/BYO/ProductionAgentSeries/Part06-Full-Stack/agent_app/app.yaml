@@ -5,7 +5,7 @@ env:
   - name: MLFLOW_TRACKING_URI
     value: "databricks"
   - name: AGENT_LLM_ENDPOINT
-    value: "databricks-gpt-oss-120b"
+    value: "databricks-claude-sonnet-4-6"
   - name: AGENT_LLM_TEMPERATURE
     value: "0.1"
   - name: DATABRICKS_EMBEDDING_ENDPOINT
@@ -16,7 +16,7 @@ env:
   # ── Fill in before deploying ───────────────────────────────────────────────
   # URL of the deployed mcp_server/ app — available after Step 5 of setup
   - name: MCP_SERVER_URL
-    value: "https://part06-mcp-server-7474655512364318.aws.databricksapps.com/mcp"
+    value: "https://part06-mcp-server-2556758628403379.aws.databricksapps.com/mcp"
 
   # ── Lakebase instance name (short name, not the connection hostname) ──────
   - name: LAKEBASE_INSTANCE_NAME

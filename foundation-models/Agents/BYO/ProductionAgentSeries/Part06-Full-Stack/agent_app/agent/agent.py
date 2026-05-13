@@ -31,8 +31,8 @@ import os
 from databricks.sdk import WorkspaceClient
 from databricks_langchain import (
     ChatDatabricks,
-    DatabricksMCPServer,
     DatabricksMultiServerMCPClient,
+    MCPServer,
 )
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.prebuilt import create_react_agent
@@ -89,12 +89,17 @@ async def init_agent(
     """
     ws = workspace_client or sp_workspace_client
 
+    # Use MCPServer with explicit auth headers instead of DatabricksMCPServer.
+    # DatabricksMCPServer passes server_url="" to OAuthClientProvider, which
+    # breaks OAuth discovery (builds URLs from empty string) if the MCP server
+    # returns 401. Passing the Bearer token directly avoids this issue.
+    auth_headers = ws.config.authenticate()
     mcp_client = DatabricksMultiServerMCPClient(
         [
-            DatabricksMCPServer(
+            MCPServer(
                 name="production_mcp",
                 url=MCP_SERVER_URL,
-                workspace_client=ws,
+                headers=auth_headers,
             )
         ]
     )
