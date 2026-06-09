@@ -8,10 +8,12 @@ Hands-on code samples for Databricks, MLflow, Model Serving, Foundation Models, 
 
 ```
 ├── foundation-models/
-│   ├── fm-api-intro.ipynb                    # Foundation Model API intro
+│   ├── ModelServing/
+│   │   ├── fm-api-intro.ipynb                # Foundation Model API intro
+│   │   └── CustomLLM-Deployment/             # Qwen / multi-LoRA / multi-QLoRA on vLLM
 │   ├── RAG/                                  # Vector Search + LangChain RAG
 │   └── Agents/
-│       ├── AgentBricks/                      # Knowledge Assistant & Info Extraction
+│       ├── AgentBricks/                      # Knowledge Assistant, Info Extraction, Managed Supervisor
 │       └── BYO/
 │           ├── agents-model-serving/         # Agent deployment on Model Serving
 │           ├── Custom-MCP-Server-Agent/      # MCP server + LangGraph agent
@@ -23,13 +25,17 @@ Hands-on code samples for Databricks, MLflow, Model Serving, Foundation Models, 
 │   └── ResponsesAgentInterface/              # ResponsesAgent wrapper + local serve
 │
 ├── traditional-ml/
-│   └── ModelServing/
-│       ├── Built-In-MLflow/                  # Sklearn & Transformers serving
-│       ├── BYO/                              # Custom PyFunc model serving
-│       └── Multi-Model-Serving/              # Multi-model endpoint patterns
+│   ├── ModelServing/
+│   │   ├── Built-In-MLflow/                  # Sklearn & Transformers serving
+│   │   ├── BYO/                              # Custom PyFunc model serving
+│   │   └── Multi-Model-Serving/              # Multi-model endpoint patterns
+│   └── MLOps/
+│       ├── train-batch-job/                  # Train + batch inference job
+│       └── multi-model-training-pipeline/    # Multi-model training pipeline
 │
 └── apps/
-    └── mcp/                                  # MCP server + client test scripts
+    ├── mcp/                                  # MCP server + client test scripts
+    └── streamlit-chatbot/                    # Streaming Streamlit chatbot on Databricks Apps
 ```
 
 ---
@@ -37,7 +43,12 @@ Hands-on code samples for Databricks, MLflow, Model Serving, Foundation Models, 
 ## Foundation Models & Agents
 
 ### Foundation Model APIs
-- [`foundation-models/fm-api-intro.ipynb`](foundation-models/fm-api-intro.ipynb) — Getting started with Databricks FM APIs
+- [`foundation-models/ModelServing/fm-api-intro.ipynb`](foundation-models/ModelServing/fm-api-intro.ipynb) — Getting started with Databricks FM APIs
+
+### Custom LLM Deployment
+- [`CustomLLM-Deployment/serve-custom-llm-qwen.ipynb`](foundation-models/ModelServing/CustomLLM-Deployment/serve-custom-llm-qwen.ipynb) — Qwen2.5-7B on A10 GPU via vLLM
+- [`CustomLLM-Deployment/serve-custom-llm-multi-lora.ipynb`](foundation-models/ModelServing/CustomLLM-Deployment/serve-custom-llm-multi-lora.ipynb) — Multi-LoRA adapter serving
+- [`CustomLLM-Deployment/serve-custom-llm-multi-qlora.ipynb`](foundation-models/ModelServing/CustomLLM-Deployment/serve-custom-llm-multi-qlora.ipynb) — Multi-QLoRA quantized adapter serving
 
 ### RAG
 - [`foundation-models/RAG/`](foundation-models/RAG/) — Vector Search setup + LangChain RAG pipeline
@@ -45,6 +56,7 @@ Hands-on code samples for Databricks, MLflow, Model Serving, Foundation Models, 
 ### AgentBricks
 - [`AgentBricks/KnowledgeAssistant/`](foundation-models/Agents/AgentBricks/KnowledgeAssistant/) — Knowledge Assistant API sample
 - [`AgentBricks/InformationExtraction/`](foundation-models/Agents/AgentBricks/InformationExtraction/) — Information Extraction agent
+- [`AgentBricks/ManagedSupervisor/`](foundation-models/Agents/AgentBricks/ManagedSupervisor/) — Managed Supervisor multi-agent with Genie + evaluation
 
 ### BYO Agents
 - [`agents-model-serving/`](foundation-models/Agents/BYO/agents-model-serving/) — Deploying agents on Databricks Model Serving
@@ -75,18 +87,24 @@ A 6-part series building a production-grade agent end-to-end: MCP tools, Respons
 
 ---
 
-## Traditional ML — Model Serving
+## Traditional ML
 
+### Model Serving
 - [`Built-In-MLflow/dbx-serving-sklearn.ipynb`](traditional-ml/ModelServing/Built-In-MLflow/dbx-serving-sklearn.ipynb) — Sklearn model on Databricks Model Serving
 - [`Built-In-MLflow/transformers-dbx-serving.ipynb`](traditional-ml/ModelServing/Built-In-MLflow/transformers-dbx-serving.ipynb) — Transformers model on Model Serving
 - [`BYO/custom-model-pyfunc.ipynb`](traditional-ml/ModelServing/BYO/custom-model-pyfunc.ipynb) — Custom PyFunc model serving
 - [`Multi-Model-Serving/multi-model-serving-intro.ipynb`](traditional-ml/ModelServing/Multi-Model-Serving/multi-model-serving-intro.ipynb) — Multi-model endpoint patterns
+
+### MLOps
+- [`MLOps/train-batch-job/`](traditional-ml/MLOps/train-batch-job/) — Train + batch inference job (data → train → batch infer → orchestrate)
+- [`MLOps/multi-model-training-pipeline/`](traditional-ml/MLOps/multi-model-training-pipeline/) — Per-user multi-model training pipeline + multi-model endpoint
 
 ---
 
 ## Apps
 
 - [`apps/mcp/`](apps/mcp/) — MCP server and client test scripts
+- [`apps/streamlit-chatbot/`](apps/streamlit-chatbot/) — Streaming Streamlit chatbot on Databricks Apps (`databricks-gpt-5-5` via Unity AI Gateway)
 
 ---
 
