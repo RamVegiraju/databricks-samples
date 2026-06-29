@@ -1,0 +1,28 @@
+# AI Runtime CLI workload config.
+# Submit with: air run --file train.yaml --watch -p my-workspace
+
+# MLflow experiment that the run is tracked under (created if it doesn't exist).
+experiment_name: ai-runtime-cli-intro
+
+# Serverless GPU compute to provision for this run.
+compute:
+  num_accelerators: 1
+  accelerator_type: GPU_1xA10
+
+# Python environment built on the GPU node before the command runs.
+environment:
+  version: '4'
+  dependencies:
+    - torch
+    - mlflow
+
+# Upload this directory so the script is available on the node.
+code_source:
+  type: snapshot
+  snapshot:
+    root_path: .
+
+# Entry point. $CODE_SOURCE_PATH points at the uploaded snapshot.
+# All hyperparameters are CLI flags with sensible defaults; override them here, e.g.
+#   command: python $CODE_SOURCE_PATH/train.py --epochs 20 --lr 5e-4 --hidden 256
+command: python $CODE_SOURCE_PATH/train.py
