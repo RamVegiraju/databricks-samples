@@ -1,0 +1,30 @@
+# AI Runtime CLI workload config — serving-ready training.
+# Submit with: air run --file train.yaml --watch -p my-workspace
+
+# MLflow experiment that the run is tracked under (created if it doesn't exist).
+experiment_name: ai-runtime-cli-serving
+
+# Serverless GPU compute to provision for this run.
+compute:
+  num_accelerators: 1
+  accelerator_type: GPU_1xA10
+
+# Python environment built on the GPU node before the command runs.
+environment:
+  version: '4'
+  dependencies:
+    - torch
+    - mlflow
+
+# Upload this directory so the script is available on the node.
+code_source:
+  type: snapshot
+  snapshot:
+    root_path: .
+
+# Entry point. $CODE_SOURCE_PATH points at the uploaded snapshot.
+# The registered model name is the one knob that must match deploy.py / invoke.py;
+# every hyperparameter is an optional flag with a default (see train.py).
+#   command: python $CODE_SOURCE_PATH/train.py \
+#     --registered-model-name custom_ml.models.air_mlp_classifier --epochs 20 --lr 5e-4
+command: python $CODE_SOURCE_PATH/train.py --registered-model-name custom_ml.models.air_mlp_classifier
