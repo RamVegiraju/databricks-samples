@@ -1,0 +1,43 @@
+# AI Runtime CLI workload: fine-tune DistilBERT for sentiment on a serverless GPU.
+# Submit with: COPYFILE_DISABLE=1 air run --file train.yaml --watch -p my-workspace
+#
+# This workload does ONE thing: train + register the model. The A10 is used for
+# training only. Deployment to a CPU serving endpoint is a separate, independent
+# step (deploy.py) that runs locally and needs no GPU — see the README.
+
+experiment_name: ai-runtime-cli-transformers-sentiment
+
+# Serverless GPU compute for the fine-tuning step.
+compute:
+  num_accelerators: 1
+  accelerator_type: GPU_1xA10   # also valid: GPU_1xH100, GPU_8xH100
+
+environment:
+  version: '4'
+  dependencies:
+    - torch
+    - transformers
+    # Pin datasets + huggingface_hub + fsspec to a mutually compatible set. The
+    # runtime's unpinned resolve installs a datasets/huggingface_hub pair that
+    # disagree on HfFileSystem.find(maxdepth=...), which breaks load_dataset().
+    - datasets==3.1.0
+    - huggingface_hub==0.26.2
+    - fsspec==2024.9.0
+    # Runtime sets HF_HUB_ENABLE_HF_TRANSFER=1; the pinned hub needs this package.
+    - hf_transfer
+    - accelerate
+    - mlflow
+
+code_source:
+  type: snapshot
+  snapshot:
+    root_path: .
+
+# Config lives in the exports below — the single source of truth train.py reads
+# via its env-var defaults. Change these to reproduce in any workspace; no code
+# edits needed. deploy.py resolves the same MODEL_NAME/@MODEL_ALIAS afterward.
+command: |
+  set -e
+  export MODEL_NAME=custom_ml.models.distilbert_sentiment   # <catalog>.<schema>.<model> you can write to
+  export MODEL_ALIAS=champion                               # train.py tags this version; deploy.py resolves it
+  python $CODE_SOURCE_PATH/train.py

@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
                    help="Registry alias assigned to this version for the deploy step to resolve")
     p.add_argument("--base-model", default=os.environ.get("BASE_MODEL", "distilbert-base-uncased"),
                    help="Hugging Face model id to fine-tune")
-    p.add_argument("--dataset", default=os.environ.get("DATASET", "glue"))
+    p.add_argument("--dataset", default=os.environ.get("DATASET", "nyu-mll/glue"))
     p.add_argument("--dataset-config", default=os.environ.get("DATASET_CONFIG", "sst2"))
     p.add_argument("--text-column", default=os.environ.get("TEXT_COLUMN", "sentence"))
     p.add_argument("--train-size", type=int, default=2048,
